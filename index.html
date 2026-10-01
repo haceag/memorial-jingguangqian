@@ -197,7 +197,6 @@ footer{
   border-top:1px solid var(--line);
 }
 .f-mark{font-family:var(--serif);font-size:13px;letter-spacing:.42em;color:var(--gold);margin-bottom:16px}
-.f-note{font-size:12px;color:var(--ink-3);line-height:2.1;letter-spacing:.06em}
 
 @media (max-width:420px){
   .hero-name{font-size:38px}
@@ -332,10 +331,6 @@ footer{
 
   <footer>
     <div class="f-mark reveal">永 远 怀 念</div>
-    <p class="f-note reveal">
-      本页面为家族内部纪念存档<br>
-      静态单页 · 无第三方依赖 · 永久可阅
-    </p>
   </footer>
 </div>
 
@@ -374,7 +369,7 @@ function renderCandles(){
 }
 function renderNotes(){
   const w=document.getElementById('wall');
-  if(!notes.length){ w.innerHTML='<p class="small" style="text-align:center;padding:22px 0">还没有留言，成为第一个。</p>'; return; }
+  if(!notes.length){ w.innerHTML=''; return; }
   w.innerHTML=notes.map(n=>`<div class="note"><div class="t">${esc(n.t)}</div><div class="m">${esc(n.n)} · ${n.d}</div></div>`).join('');
 }
 
@@ -449,7 +444,7 @@ document.getElementById('send').addEventListener('click',async ()=>{
     await apiLoad();
     online=true;
     renderCounts(); renderNotes(); renderCandles();
-    cloudHint.textContent='云端同步中 · 留言与敬献全家族共享';
+    cloudHint.textContent='';
   }catch(e){
     cloudHint.textContent='离线模式 · 留言与敬献仅保存在本机';
   }
