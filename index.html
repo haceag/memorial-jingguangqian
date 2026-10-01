@@ -323,7 +323,7 @@ footer{
       <input id="nick" type="text" placeholder="您的称呼（如：长子 建国）" maxlength="16">
       <textarea id="msg" placeholder="写下一句想说的话……" maxlength="140"></textarea>
       <div class="row">
-        <span class="small">留言仅保存在本机浏览器</span>
+        <span class="small" id="cloudHint">正在连接云端…</span>
         <button class="btn" id="send">留 言</button>
       </div>
     </div>
@@ -348,48 +348,136 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
   el.style.transitionDelay = Math.min(i%6*70,350)+'ms'; io.observe(el);
 });
 
-/* ---------- 敬献计数（本机持久化） ---------- */
+/* ---------- 云端配置（腾讯云开发 CloudBase） ---------- */
+const CLOUD = {
+  env: 'fundvaluation-d2g766xuhc18492d7',
+  region: 'ap-shanghai',
+  accessKey: ''
+};
 const key = 'memorial-jingguangqian';
-const stat = JSON.parse(localStorage.getItem(key+'-stat')||'{"candle":0,"flower":0,"bow":0}');
-const binds = {candle:'cCount',flower:'fCount',bow:'bCount'};
-function paint(){
+let cloud = null;
+const stat = {candle:0,flower:0,bow:0};
+let notes = [];
+
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function fmtDate(ts){try{return new Date(ts).toLocaleDateString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit'})}catch(e){return ''}}
+
+/* ---------- 渲染 ---------- */
+function renderCounts(){
   cCount.textContent=stat.candle; fCount.textContent=stat.flower; bCount.textContent=stat.bow;
+}
+function renderCandles(){
   const box=document.getElementById('candles');
-  if(stat.candle>box.children.length){
-    const start=box.children.length, add=Math.min(stat.candle-start,18);
-    for(let i=0;i<add;i++){
-      const d=document.createElement('div'); d.className='candle';
-      d.style.animationDelay=(i*55)+'ms';
-      d.innerHTML='<div class="flame" style="animation-delay:'+(i*180)+'ms"></div><div class="stick"></div>';
-      box.appendChild(d);
-    }
+  const want=Math.min(stat.candle,24), have=box.children.length;
+  for(let i=have;i<want;i++){
+    const d=document.createElement('div'); d.className='candle';
+    d.style.animationDelay=((i-have)*55)+'ms';
+    d.innerHTML='<div class="flame" style="animation-delay:'+(i*180)+'ms"></div><div class="stick"></div>';
+    box.appendChild(d);
   }
 }
+function renderNotes(){
+  const w=document.getElementById('wall');
+  if(!notes.length){ w.innerHTML='<p class="small" style="text-align:center;padding:22px 0">还没有留言，成为第一个。</p>'; return; }
+  w.innerHTML=notes.map(n=>`<div class="note"><div class="t">${esc(n.t)}</div><div class="m">${esc(n.n)} · ${n.d}</div></div>`).join('');
+}
+
+/* ---------- 本机模式（云端不可用时自动降级） ---------- */
+function localLoad(){
+  const s=JSON.parse(localStorage.getItem(key+'-stat')||'null'); if(s) Object.assign(stat,s);
+  notes=JSON.parse(localStorage.getItem(key+'-notes')||'[]');
+}
+function localSave(){
+  localStorage.setItem(key+'-stat',JSON.stringify(stat));
+  localStorage.setItem(key+'-notes',JSON.stringify(notes));
+}
+
+/* ---------- 云端模式 ---------- */
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
+async function initCloud(){
+  if(!CLOUD.env) return false;
+  /* 先试 v2 新版 SDK（部分环境要求 accessKey），失败自动退回 v1（免密钥） */
+  try{
+    await loadScript('https://static.cloudbase.net/cloudbase-js-sdk/2.17.3/cloudbase.full.js');
+    if(typeof cloudbase!=='undefined'){
+      const opt={env:CLOUD.env};
+      if(CLOUD.region) opt.region=CLOUD.region;
+      if(CLOUD.accessKey) opt.accessKey=CLOUD.accessKey;
+      const app=cloudbase.init(opt);
+      await app.auth().signInAnonymously();
+      const db=app.database();
+      cloud={db,_:db.command};
+      return true;
+    }
+  }catch(e){ console.warn('[纪念页] v2 连接失败，尝试 v1：',(e&&e.message)||e); }
+  try{
+    await loadScript('https://imgcache.qq.com/qcloud/cloudbase-js-sdk/1.10.1/cloudbase.full.js');
+    if(typeof cloudbase!=='undefined'){
+      const app=cloudbase.init({env:CLOUD.env});
+      await app.auth({persistence:'local'}).anonymousAuthProvider().signIn();
+      const db=app.database();
+      cloud={db,_:db.command};
+      return true;
+    }
+  }catch(e){ console.warn('[纪念页] v1 连接失败：',(e&&e.message)||e); }
+  return false;
+}
+async function cloudLoadAll(){
+  let doc=null;
+  try{ const r=await cloud.db.collection('memorial_stats').doc('global').get(); doc=(r.data&&r.data[0])||null; }catch(e){}
+  if(!doc){
+    try{ await cloud.db.collection('memorial_stats').doc('global').set({candle:0,flower:0,bow:0}); }catch(e){}
+    doc={candle:0,flower:0,bow:0};
+  }
+  stat.candle=doc.candle||0; stat.flower=doc.flower||0; stat.bow=doc.bow||0;
+  try{
+    const r=await cloud.db.collection('memorial_notes').orderBy('ts','desc').limit(60).get();
+    notes=(r.data||[]).map(x=>({n:x.n||'亲友',t:x.t,d:fmtDate(x.ts)}));
+  }catch(e){}
+}
+async function cloudInc(field){
+  try{ await cloud.db.collection('memorial_stats').doc('global').update({[field]:cloud._.inc(1)}); return true; }
+  catch(e){ return false; }
+}
+
+/* ---------- 敬献（点烛 / 献花 / 鞠躬） ---------- */
 document.querySelectorAll('.rt').forEach(el=>{
-  el.addEventListener('click',()=>{
-    const a=el.dataset.act; stat[a]++;
-    localStorage.setItem(key+'-stat',JSON.stringify(stat));
-    paint(); if(navigator.vibrate) navigator.vibrate(12);
+  el.addEventListener('click',async ()=>{
+    const a=el.dataset.act;
+    stat[a]++; renderCounts(); renderCandles();
+    if(navigator.vibrate) navigator.vibrate(12);
+    if(cloud){ const ok=await cloudInc(a); if(!ok){ stat[a]--; renderCounts(); } }
+    else localSave();
   });
 });
-paint();
 
-/* ---------- 留言（本机持久化） ---------- */
-let notes = JSON.parse(localStorage.getItem(key+'-notes')||'[]');
-function render(){
-  const w=document.getElementById('wall');
-  if(!notes.length){ w.innerHTML='<p class="small" style="text-align:center;padding:22px 0">还没有留言。成为第一个。</p>'; return; }
-  w.innerHTML = notes.map(n=>`<div class="note"><div class="t">${esc(n.t)}</div><div class="m">${esc(n.n)} · ${n.d}</div></div>`).join('');
-}
-function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-document.getElementById('send').addEventListener('click',()=>{
+/* ---------- 追思寄语 ---------- */
+document.getElementById('send').addEventListener('click',async ()=>{
   const t=msg.value.trim(), n=nick.value.trim()||'亲友';
   if(!t){ msg.focus(); return; }
-  notes.unshift({t,n,d:new Date().toLocaleDateString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit'})});
-  localStorage.setItem(key+'-notes',JSON.stringify(notes));
-  msg.value=''; nick.value=''; render();
+  const ts=Date.now();
+  if(cloud){
+    try{ await cloud.db.collection('memorial_notes').add({n:n,t:t,ts:ts}); }
+    catch(e){ cloudHint.textContent='云端保存失败，请稍后再试'; return; }
+  }
+  notes.unshift({n:n,t:t,d:fmtDate(ts)});
+  if(!cloud) localSave();
+  msg.value=''; nick.value=''; renderNotes();
 });
-render();
+
+/* ---------- 启动 ---------- */
+(async function boot(){
+  localLoad(); renderCounts(); renderNotes(); renderCandles();
+  cloudHint.textContent='正在连接云端…';
+  const ok=await initCloud();
+  if(ok){
+    await cloudLoadAll();
+    renderCounts(); renderNotes(); renderCandles();
+    cloudHint.textContent='云端同步中 · 留言与敬献全家族共享';
+  }else{
+    cloudHint.textContent='离线模式 · 留言与敬献仅保存在本机';
+  }
+})();
 </script>
 </body>
 </html>
