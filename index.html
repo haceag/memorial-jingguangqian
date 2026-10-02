@@ -157,6 +157,49 @@ img{max-width:100%;display:block}
 .note .dt{font-size:12px;color:var(--ink-3);margin-top:4px;letter-spacing:.1em}
 .note .t{font-size:13.5px;color:var(--ink-2);line-height:2;letter-spacing:.05em;margin-top:8px}
 .composer{border:1px dashed var(--gold-2);padding:20px;margin-top:6px}
+/* ---------- 焚寄 ---------- */
+.burn-box{border:1px solid var(--line);background:rgba(255,255,255,.5);padding:22px 18px}
+.b-tabs{display:flex;gap:10px;justify-content:center;margin-bottom:6px}
+.b-tab{font-family:var(--serif);font-size:14px;letter-spacing:.18em;padding:8px 16px;border:1px solid var(--line);background:transparent;color:var(--ink-2);cursor:pointer;transition:all .25s}
+.b-tab.on{background:var(--gold);color:#fdf8ee;border-color:var(--gold)}
+.b-stage{position:relative;height:252px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+.b-item{position:absolute;bottom:96px;left:50%;transform:translateX(-50%);width:148px;z-index:2}
+.b-item svg{width:100%;height:auto;display:block;filter:drop-shadow(0 7px 9px rgba(0,0,0,.2))}
+.b-item.burning{animation:burnFall 3.6s ease-in forwards}
+@keyframes burnFall{
+  0%{transform:translateX(-50%) translateY(0) scale(1);opacity:1}
+  42%{transform:translateX(-50%) translateY(24px) scale(.92);opacity:1;filter:sepia(.55) saturate(1.5) brightness(.92)}
+  74%{transform:translateX(-50%) translateY(34px) scale(.58);opacity:.7;filter:brightness(.55) sepia(1) saturate(1.4)}
+  100%{transform:translateX(-50%) translateY(42px) scale(.1);opacity:0;filter:brightness(.25)}
+}
+.b-fire{position:absolute;bottom:58px;left:50%;width:84px;height:116px;opacity:0;transition:opacity .55s;z-index:3;pointer-events:none}
+.b-fire.on{opacity:1}
+.b-fire i{position:absolute;bottom:0;left:50%;border-radius:50% 50% 42% 42%/66% 66% 34% 34%;transform-origin:50% 100%;filter:blur(1.6px);animation:flick .26s ease-in-out infinite alternate}
+.b-fire .f1{width:48px;height:88px;margin-left:-24px;background:radial-gradient(circle at 50% 78%,#ff9d3c 0%,#f26d1f 55%,rgba(220,80,10,0) 75%)}
+.b-fire .f2{width:31px;height:62px;margin-left:-15.5px;background:radial-gradient(circle at 50% 78%,#ffd76e 0%,#ffa62b 60%,rgba(255,150,30,0) 76%);animation-duration:.21s}
+.b-fire .f3{width:17px;height:36px;margin-left:-8.5px;background:radial-gradient(circle at 50% 75%,#fff3c4 0%,#ffd76e 65%,rgba(255,220,110,0) 79%);animation-duration:.16s}
+@keyframes flick{from{transform:scaleY(1) skewX(-4deg)}to{transform:scaleY(1.18) skewX(5deg)}}
+.b-bowl{position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:196px;z-index:4;pointer-events:none}
+.b-bowl svg{width:100%;display:block;filter:drop-shadow(0 10px 12px rgba(0,0,0,.28))}
+.b-ash{position:absolute;inset:0;z-index:5;pointer-events:none}
+.b-ash i{position:absolute;width:5px;height:5px;border-radius:50%;background:#2e2a25;animation:ashRise 3s ease-out forwards}
+@keyframes ashRise{
+  0%{transform:translate(0,0) rotate(0deg);opacity:0}
+  14%{opacity:.95}
+  100%{transform:translate(var(--dx),var(--dy)) rotate(430deg);opacity:0}
+}
+.b-form{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+.b-form input{width:100%;background:transparent;border:1px dashed var(--line);outline:none;font-family:var(--sans);color:var(--ink);font-size:14px;padding:11px 12px}
+.b-form input:focus{border-color:var(--gold-2)}
+.b-log{margin-top:16px;display:flex;flex-direction:column;gap:10px;max-height:320px;overflow:auto}
+.b-rec{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:rgba(255,255,255,.45);padding:11px 14px}
+.b-rec .ava2{flex:none;width:30px;height:30px;border-radius:50%;background:linear-gradient(145deg,#ffe6bd,#e8ab4f);color:#6d4a0e;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:14px;font-weight:700}
+.b-rec .bn{flex:none;font-family:var(--serif);font-size:14px;font-weight:700;color:var(--ink)}
+.b-rec .bi{flex:none;font-size:11px;color:#96691c;border:1px solid #d3ac68;border-radius:4px;padding:1px 6px;letter-spacing:.08em}
+.b-rec .bt{flex:1;min-width:0;font-size:13px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.b-rec .bd{flex:none;font-size:11.5px;color:var(--ink-3);letter-spacing:.05em}
+#toast{position:fixed;top:18px;left:50%;transform:translate(-50%,-12px);background:rgba(38,36,33,.93);color:#f4e9d6;font-size:13px;letter-spacing:.14em;padding:10px 24px;border-radius:4px;opacity:0;pointer-events:none;transition:all .35s;z-index:99}
+#toast.show{opacity:1;transform:translate(-50%,0)}
 .composer input,.composer textarea{
   width:100%;background:transparent;border:none;outline:none;
   font-family:var(--sans);color:var(--ink);font-size:14px;line-height:1.9;
@@ -322,6 +365,45 @@ footer{
     <div class="rule"></div>
   </section>
 
+  <!-- ============ 焚寄 ============ -->
+  <section class="sec">
+    <div class="sec-title reveal">焚 寄 思 念</div>
+    <div class="sec-sub reveal">捎去人间的心意</div>
+    <div class="burn-box reveal">
+      <div class="b-tabs">
+        <button class="b-tab on" data-item="paper">纸 钱</button>
+        <button class="b-tab" data-item="house">纸 屋</button>
+        <button class="b-tab" data-item="car">纸 车</button>
+      </div>
+      <div class="b-stage">
+        <div class="b-item" id="bItem"></div>
+        <div class="b-fire" id="bFire"><i class="f1"></i><i class="f2"></i><i class="f3"></i></div>
+        <div class="b-bowl">
+          <svg viewBox="0 0 190 74">
+            <path d="M40 52 l-8 15 h11 l6-12z" fill="#37312b"/>
+            <path d="M150 52 l8 15 h-11 l-6-12z" fill="#37312b"/>
+            <path d="M13 15 C19 42 43 54 95 54 C147 54 171 42 177 15 C148 27 42 27 13 15Z" fill="#4a4239"/>
+            <path d="M13 15 C42 27 148 27 177 15 C150 22 40 22 13 15Z" fill="#5c5347"/>
+            <ellipse cx="95" cy="14" rx="90" ry="11" fill="#6b6156"/>
+            <ellipse cx="95" cy="11.5" rx="90" ry="10" fill="#7d7264"/>
+            <ellipse cx="95" cy="11.5" rx="74" ry="7.6" fill="#211c18"/>
+          </svg>
+        </div>
+        <div class="b-ash" id="ashBox"></div>
+      </div>
+      <div class="b-form">
+        <input id="burnName" type="text" placeholder="您的称呼（如：长子 建国）" maxlength="16">
+        <input id="burnMsg" type="text" placeholder="焚寄心语（可选，如：父亲，收好）" maxlength="60">
+        <div class="row">
+          <span class="small"></span>
+          <button class="btn" id="burnBtn">焚 寄</button>
+        </div>
+      </div>
+      <div class="b-log" id="burnLog"></div>
+    </div>
+    <div class="rule"></div>
+  </section>
+
   <!-- ============ 留言 ============ -->
   <section class="sec">
     <div class="sec-title reveal">追 思 寄 语</div>
@@ -342,6 +424,8 @@ footer{
     <div class="f-mark reveal">永 远 怀 念</div>
   </footer>
 </div>
+
+<div id="toast"></div>
 
 <script>
 /* ---------- 滚动淡入 ---------- */
@@ -396,10 +480,12 @@ function renderNotes(){
 function localLoad(){
   const s=JSON.parse(localStorage.getItem(key+'-stat')||'null'); if(s) Object.assign(stat,s);
   notes=JSON.parse(localStorage.getItem(key+'-notes')||'[]');
+  burnList=JSON.parse(localStorage.getItem(key+'-burn')||'[]');
 }
 function localSave(){
   localStorage.setItem(key+'-stat',JSON.stringify(stat));
   localStorage.setItem(key+'-notes',JSON.stringify(notes));
+  localStorage.setItem(key+'-burn',JSON.stringify(burnList));
 }
 
 /* ---------- 云端模式（fetch API，CORS 已放行） ---------- */
@@ -416,7 +502,16 @@ async function apiLoad(){
   const r = await req(API+'/state');
   if(!r || !r.ok) throw new Error('bad state');
   Object.assign(stat, r.stats||{});
-  notes = (r.notes||[]).map(x=>({n:x.n||'亲友', t:x.t, ts:x.ts}));
+  notes = []; burnList = [];
+  (r.notes||[]).forEach(x=>{
+    const raw = String(x.n||'');
+    if(raw.startsWith('焚纸|')){
+      const seg = raw.split('|');
+      burnList.push({type:seg[1]||'paper', name:seg[2]||'亲友', t:x.t, ts:x.ts});
+    }else{
+      notes.push({n:raw||'亲友', t:x.t, ts:x.ts});
+    }
+  });
 }
 async function apiInc(field){
   const r = await req(API+'/ritual', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({act:field})});
@@ -426,6 +521,115 @@ async function apiNote(n, t){
   const r = await req(API+'/note', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({n:n, t:t})});
   if(!r || !r.ok) throw new Error('note rejected');
 }
+async function apiBurn(type, name, msg){
+  await apiNote('焚纸|'+type+'|'+name, msg||'敬焚');
+}
+
+/* ---------- 焚寄（纸钱 / 纸屋 / 纸车） ---------- */
+const BURN_NAME = {paper:'纸钱', house:'纸屋', car:'纸车'};
+const BURN_SVG = {
+  paper:'<svg viewBox="0 0 150 100">'
+    +'<path d="M30 66 C14 66 10 60 16 50 C24 38 44 34 75 34 C106 34 126 38 134 50 C140 60 136 66 120 66Z" fill="url(#gGold)" stroke="#a87f2c" stroke-width="1.6"/>'
+    +'<path d="M22 62 C40 56 110 56 128 62 C112 70 38 70 22 62Z" fill="#d9b25e" stroke="#a87f2c" stroke-width="1.2"/>'
+    +'<path d="M52 34 C44 22 56 12 75 12 C94 12 106 22 98 34 C90 30 60 30 52 34Z" fill="url(#gGold2)" stroke="#a87f2c" stroke-width="1.6"/>'
+    +'<path d="M46 33 C62 28 88 28 104 33 C88 40 62 40 46 33Z" fill="#e8cd85" stroke="#a87f2c" stroke-width="1.2"/>'
+    +'<circle cx="75" cy="74" r="17" fill="#f3ead2" stroke="#b3543a" stroke-width="2.4"/>'
+    +'<rect x="69" y="68" width="12" height="12" fill="none" stroke="#b3543a" stroke-width="2"/>'
+    +'<defs><linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#efd28a"/><stop offset="1" stop-color="#c99b3f"/></linearGradient>'
+    +'<linearGradient id="gGold2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7e3ab"/><stop offset="1" stop-color="#d9b25e"/></linearGradient></defs>'
+    +'</svg>',
+  house:'<svg viewBox="0 0 150 100">'
+    +'<path d="M18 42 L75 14 L132 42 L122 46 L75 24 L28 46Z" fill="#4c443c" stroke="#37312b" stroke-width="1.4"/>'
+    +'<path d="M28 46 L75 24 L122 46 L114 50 L75 32 L36 50Z" fill="#5f554a" stroke="#37312b" stroke-width="1.2"/>'
+    +'<rect x="30" y="50" width="90" height="40" fill="#f6efdd" stroke="#a89a80" stroke-width="1.6"/>'
+    +'<path d="M36 50 L75 31 L114 50Z" fill="#efe4c8" stroke="#a89a80" stroke-width="1"/>'
+    +'<rect x="66" y="62" width="18" height="28" fill="#b3543a" stroke="#8c3f2b" stroke-width="1.4"/>'
+    +'<circle cx="80" cy="77" r="1.6" fill="#f3e3c0"/>'
+    +'<rect x="40" y="58" width="14" height="14" fill="none" stroke="#8c6f4a" stroke-width="1.4"/>'
+    +'<path d="M47 58v14M40 65h14" stroke="#8c6f4a" stroke-width="1"/>'
+    +'<rect x="96" y="58" width="14" height="14" fill="none" stroke="#8c6f4a" stroke-width="1.4"/>'
+    +'<path d="M103 58v14M96 65h14" stroke="#8c6f4a" stroke-width="1"/>'
+    +'<rect x="69" y="20" width="12" height="10" fill="#8c8378" stroke="#6b6156" stroke-width="1"/>'
+    +'</svg>',
+  car:'<svg viewBox="0 0 150 100">'
+    +'<path d="M14 68 C14 60 20 56 30 54 L44 40 C48 34 56 32 68 32 L96 32 C106 32 112 35 117 41 L127 54 C136 56 140 60 140 66 L138 72 C136 75 132 76 128 76 L26 76 C20 76 15 73 14 68Z" fill="#c9553d" stroke="#96392a" stroke-width="1.8"/>'
+    +'<path d="M50 42 L60 36 L92 36 L100 42 L84 42 L84 52 L58 52 L58 42Z" fill="#dfe7ea" stroke="#96392a" stroke-width="1.2"/>'
+    +'<path d="M104 44 L114 54 L96 54 L96 44Z" fill="#dfe7ea" stroke="#96392a" stroke-width="1.2"/>'
+    +'<circle cx="42" cy="74" r="11" fill="#2e2a25" stroke="#171411" stroke-width="2"/>'
+    +'<circle cx="42" cy="74" r="4.5" fill="#8b8378"/>'
+    +'<circle cx="112" cy="74" r="11" fill="#2e2a25" stroke="#171411" stroke-width="2"/>'
+    +'<circle cx="112" cy="74" r="4.5" fill="#8b8378"/>'
+    +'<rect x="14" y="58" width="122" height="3" fill="#e8965c" opacity=".55"/>'
+    +'<circle cx="135" cy="62" r="3.4" fill="#ffd76e" stroke="#a87f2c" stroke-width="1"/>'
+    +'</svg>'
+};
+let curItem = 'paper', burnList = [], burningFlag = false;
+const bItem = document.getElementById('bItem'), bFire = document.getElementById('bFire'),
+      ashBox = document.getElementById('ashBox'), burnLog = document.getElementById('burnLog'),
+      burnName = document.getElementById('burnName'), burnMsg = document.getElementById('burnMsg'),
+      burnBtn = document.getElementById('burnBtn'), toast = document.getElementById('toast');
+
+function renderBurnItem(){ bItem.innerHTML = BURN_SVG[curItem]; }
+function renderBurnLog(){
+  burnLog.innerHTML = burnList.map(x=>{
+    const nm = (x.name||'亲友').trim()||'亲友';
+    return '<div class="b-rec"><div class="ava2">'+esc(nm.charAt(0))+'</div>'
+      +'<span class="bn">'+esc(nm)+'</span>'
+      +'<span class="bi">'+esc(BURN_NAME[x.type]||x.type)+'</span>'
+      +(x.t?'<span class="bt">'+esc(x.t)+'</span>':'')
+      +'<span class="bd">'+fmtDate(x.ts)+'</span></div>';
+  }).join('');
+}
+document.querySelectorAll('.b-tab').forEach(el=>{
+  el.addEventListener('click',()=>{
+    if(burningFlag) return;
+    document.querySelectorAll('.b-tab').forEach(t=>t.classList.remove('on'));
+    el.classList.add('on');
+    curItem = el.dataset.item;
+    renderBurnItem();
+  });
+});
+function spawnAsh(){
+  for(let i=0;i<26;i++){
+    const s=document.createElement('i');
+    s.style.left=(42+Math.random()*16)+'%';
+    s.style.bottom=(24+Math.random()*10)+'%';
+    s.style.setProperty('--dx',(Math.random()*100-50)+'px');
+    s.style.setProperty('--dy',-(90+Math.random()*140)+'px');
+    s.style.animationDelay=(Math.random()*1.5)+'s';
+    if(Math.random()<.3){ s.style.background='#e8963c'; }
+    const sz=3+Math.random()*3; s.style.width=sz+'px'; s.style.height=sz+'px';
+    ashBox.appendChild(s);
+    setTimeout(()=>s.remove(),5600);
+  }
+}
+let toastTimer;
+function showToast(msg){
+  toast.textContent=msg; toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>toast.classList.remove('show'),2400);
+}
+burnBtn.addEventListener('click',async ()=>{
+  if(burningFlag) return;
+  const name=(burnName.value.trim()||'亲友').slice(0,10);
+  const msg=burnMsg.value.trim().slice(0,60);
+  const type=curItem;
+  burningFlag=true; burnBtn.disabled=true; burnBtn.style.opacity=.45;
+  bItem.classList.add('burning');
+  bFire.classList.add('on');
+  spawnAsh();
+  const rec={type:type,name:name,t:msg||'敬焚',ts:Date.now()};
+  if(online){ try{ await apiBurn(type,name,msg); }catch(e){} }
+  else localSave();
+  setTimeout(()=>{
+    bFire.classList.remove('on');
+    burnList.unshift(rec); renderBurnLog();
+    showToast('已焚寄 · '+BURN_NAME[type]);
+    bItem.classList.remove('burning');
+    burnBtn.disabled=false; burnBtn.style.opacity=1;
+    burningFlag=false;
+  },3700);
+});
 
 /* ---------- 敬献（点烛 / 献花 / 鞠躬） ---------- */
 document.querySelectorAll('.rt').forEach(el=>{
@@ -457,12 +661,12 @@ document.getElementById('send').addEventListener('click',async ()=>{
 
 /* ---------- 启动 ---------- */
 (async function boot(){
-  localLoad(); renderCounts(); renderNotes(); renderCandles();
+  localLoad(); renderCounts(); renderNotes(); renderCandles(); renderBurnItem(); renderBurnLog();
   cloudHint.textContent='正在连接云端…';
   try{
     await apiLoad();
     online=true;
-    renderCounts(); renderNotes(); renderCandles();
+    renderCounts(); renderNotes(); renderCandles(); renderBurnLog();
     cloudHint.textContent='';
   }catch(e){
     cloudHint.textContent='离线模式 · 留言与敬献仅保存在本机';
