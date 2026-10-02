@@ -140,13 +140,22 @@ img{max-width:100%;display:block}
 /* ---------- 追思留言 ---------- */
 #wall{display:flex;flex-direction:column;gap:14px;margin-bottom:26px}
 .note{
+  display:flex;gap:14px;
   background:rgba(255,255,255,.55);border:1px solid var(--line);
   padding:18px 20px;
 }
-.note .t{font-size:13.5px;color:var(--ink-2);line-height:2;letter-spacing:.05em}
-.note .m{
-  margin-top:12px;font-size:12px;color:var(--ink-3);text-align:right;letter-spacing:.1em;
+.note .ava{
+  flex:none;width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(145deg,#ffe6bd,#e8ab4f);
+  color:#6d4a0e;display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:20px;font-weight:700;
 }
+.note .bd{flex:1;min-width:0}
+.note .hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.note .nm{font-family:var(--serif);font-size:15.5px;font-weight:700;color:var(--ink);letter-spacing:.05em}
+.note .tag{font-size:11px;color:#96691c;border:1px solid #d3ac68;border-radius:4px;padding:1px 6px;letter-spacing:.08em;line-height:1.5}
+.note .dt{font-size:12px;color:var(--ink-3);margin-top:4px;letter-spacing:.1em}
+.note .t{font-size:13.5px;color:var(--ink-2);line-height:2;letter-spacing:.05em;margin-top:8px}
 .composer{border:1px dashed var(--gold-2);padding:20px;margin-top:6px}
 .composer input,.composer textarea{
   width:100%;background:transparent;border:none;outline:none;
@@ -367,10 +376,20 @@ function renderCandles(){
     box.appendChild(d);
   }
 }
+function normDate(s){const m=String(s).match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);return m?m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0'):s}
 function renderNotes(){
   const w=document.getElementById('wall');
   if(!notes.length){ w.innerHTML=''; return; }
-  w.innerHTML=notes.map(n=>`<div class="note"><div class="t">${esc(n.t)}</div><div class="m">${esc(n.n)} · ${n.d}</div></div>`).join('');
+  w.innerHTML=notes.map(x=>{
+    const seg=String(x.n||'亲友').split('|');
+    const nm=(seg[0]||'亲友').trim()||'亲友';
+    const rel=(seg[1]||'').trim();
+    const d=seg[2]?normDate(seg[2]):fmtDate(x.ts);
+    return '<div class="note"><div class="ava">'+esc(nm.charAt(0))+'</div><div class="bd">'
+      +'<div class="hd"><span class="nm">'+esc(nm)+'</span>'+(rel?'<span class="tag">'+esc(rel)+'</span>':'')+'</div>'
+      +(d?'<div class="dt">'+esc(d)+'</div>':'')
+      +'<div class="t">'+esc(x.t)+'</div></div></div>';
+  }).join('');
 }
 
 /* ---------- 本机模式（云端不可用时自动降级） ---------- */
@@ -397,7 +416,7 @@ async function apiLoad(){
   const r = await req(API+'/state');
   if(!r || !r.ok) throw new Error('bad state');
   Object.assign(stat, r.stats||{});
-  notes = (r.notes||[]).map(x=>({n:x.n||'亲友', t:x.t, d:fmtDate(x.ts)}));
+  notes = (r.notes||[]).map(x=>({n:x.n||'亲友', t:x.t, ts:x.ts}));
 }
 async function apiInc(field){
   const r = await req(API+'/ritual', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({act:field})});
@@ -431,7 +450,7 @@ document.getElementById('send').addEventListener('click',async ()=>{
     try{ await apiNote(n,t); }
     catch(e){ cloudHint.textContent='云端保存失败，请稍后再试'; return; }
   }
-  notes.unshift({n:n,t:t,d:fmtDate(ts)});
+  notes.unshift({n:n,t:t,ts:ts});
   if(!online) localSave();
   msg.value=''; nick.value=''; renderNotes();
 });
